@@ -22,7 +22,6 @@ class ProductController extends Controller
                 'inStock' => $product->stock_quantity > 5 ? true : false,
             ];
         });
-        dd($products);
         return Inertia::render('Products/Index', [
             'products' => $products,
         ]);

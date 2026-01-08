@@ -15,12 +15,13 @@ class TwoFactorAuthenticationController extends Controller implements HasMiddlew
     /**
      * Get the middleware that should be assigned to the controller.
      */
-    public static function middleware(): array
+    public function __construct()
     {
-        return Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword')
-            ? [new Middleware('password.confirm', only: ['show'])]
-            : [];
+        if (Features::optionEnabled(Features::twoFactorAuthentication(), 'confirmPassword')) {
+            $this->middleware('password.confirm')->only('show');
+        }
     }
+
 
     /**
      * Show the user's two-factor authentication settings page.
