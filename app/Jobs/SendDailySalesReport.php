@@ -56,7 +56,7 @@ class SendDailySalesReport implements ShouldQueue
             ];
         })->values();
 
-        $adminEmail = 'admin@example.com';
+        $adminEmail = 'sajidajavaid640@gmail.com';
         Mail::to($adminEmail)->queue(new DailySalesReport($date, $soldProducts));
     }
 }

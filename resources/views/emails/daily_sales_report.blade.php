@@ -1,5 +1,5 @@
 @component('mail::message')
-    <img src="{{ asset('img/logo.png') }}" alt="Logo" style="width:120px; margin-bottom:20px;">
+    <img src="{{ asset('img/e-com-logo.png') }}" alt="Logo" style="width:120px; margin-bottom:20px;">
 
     # Daily Sales Report
 
