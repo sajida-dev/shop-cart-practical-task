@@ -2,77 +2,59 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CartRequest;
 use App\Models\Cart;
-use App\Models\Product;
+use App\Services\CartService;
+use Inertia\Inertia;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class CartController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(protected CartService $service) {}
+
+    public function index(Request $request)
     {
-        //
+        $cart = $request->user()->cart()->with('items.product')->first() ?? new Cart();
+        return Inertia::render('Cart/Index', ['cart' => $cart]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(CartRequest $request)
     {
-        //
+        try {
+            $this->service->addItem(
+                $request->user()->id,
+                $request->product_id,
+                $request->quantity
+            );
+            return back()->with('success', 'Product added to cart');
+        } catch (Throwable $e) {
+            report($e);
+            return back()->withErrors($e->getMessage());
+        }
+    }
+    public function updateQty(Request $request, int $itemId)
+    {
+        $request->validate(['quantity' => 'required|integer|min:1']);
+
+        try {
+            $this->service->updateItemQuantity($request->user()->id, $itemId, $request->quantity);
+            return back()->with('success', 'Cart updated successfully');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withErrors($e->getMessage());
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request, Product $product)
+
+    public function destroy(Request $request, int $productId)
     {
-        $cart = Cart::firstOrCreate([
-            'user_id' => Auth::id(),
-        ]);
-
-        $item = $cart->items()->firstOrCreate(
-            ['product_id' => $product->id],
-            ['quantity' => 0]
-        );
-
-        $item->increment('quantity');
-
-        return back();
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Cart $cart)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Cart $cart)
-    {
-        //
+        try {
+            $this->service->removeItem($request->user()->id, $productId);
+            return back()->with('success', 'Product removed from cart');
+        } catch (Throwable $e) {
+            report($e);
+            return back()->withErrors($e->getMessage());
+        }
     }
 }

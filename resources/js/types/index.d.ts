@@ -24,6 +24,10 @@ export type AppPageProps<
     quote: { message: string; author: string };
     auth: Auth;
     sidebarOpen: boolean;
+    shop: {
+        cart: CartItem[]
+        cartCount: number
+    }
 };
 
 export interface User {
