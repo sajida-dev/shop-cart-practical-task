@@ -27,7 +27,7 @@ class LowStockJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Mail::to('admin@example.com')
+        Mail::to('sajidajavaid640@gmail.com')
             ->queue(new LowStockMail($this->product));
     }
 }

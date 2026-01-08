@@ -6,17 +6,15 @@
             class="relative px-2 py-1 rounded-full hover:bg-white/20 transition">
             <ShoppingCartIcon class="w-6 h-6" />
             <span v-if="shop.cartCount" class="absolute -top-2 -right-1 bg-primary text-white text-xs
-          rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+        rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
                 {{ shop.cartCount }}
             </span>
         </button>
 
-
-
         <!-- CART POPUP -->
         <transition name="fade">
             <div ref="cartPopup" v-if="showCart" class="absolute right-0 top-full mt-3 w-80
-          rounded-xl bg-neutral-900/95 backdrop-blur border border-neutral-700 shadow-2xl z-50">
+        rounded-xl bg-neutral-900/95 backdrop-blur border border-neutral-700 shadow-2xl z-50">
 
                 <div class="p-4 border-b border-neutral-700 text-white font-semibold">
                     Your Cart
@@ -60,74 +58,62 @@
 
     </div>
 </template>
+
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ShoppingCartIcon, TrashIcon } from 'lucide-vue-next'
+import { useShopStore } from '@/stores/useShopStore'
 
-/*  PROPS  */
-const props = defineProps<{
-    shop: {
-        cart: any[]
-        cartCount: number
-    }
-    showCart: boolean
-}>()
+/*  STORE  */
+const shop = useShopStore()
 
-/*  EMITS  */
-const emit = defineEmits([
-    'toggle-cart',
-    'toggle-wishlist',
-    'update-quantity',
-    'remove-item',
-    'checkout'
-])
-
-/*  REFS  */
+/*  LOCAL STATE */
+const showCart = ref(false)
 const cartButton = ref<HTMLElement | null>(null)
-const wishlistButton = ref<HTMLElement | null>(null)
 const cartPopup = ref<HTMLElement | null>(null)
-const wishlistPopup = ref<HTMLElement | null>(null)
 
 /*  COMPUTED  */
 const cartTotal = computed(() =>
-    props.shop.cart.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-    )
+    shop.cart.reduce((total, item) => total + item.price * item.quantity, 0)
 )
 
-/*  METHODS  */
-const toggleCart = () => emit('toggle-cart')
-const toggleWishlist = () => emit('toggle-wishlist')
+/*  METHODS */
+const toggleCart = () => {
+    showCart.value = !showCart.value
+}
 
 const increaseQty = (item: any) => {
-    emit('update-quantity', item.id, item.quantity + 1)
+    shop.updateCartItemQuantity(item.id, item.quantity + 1)
 }
 
 const decreaseQty = (item: any) => {
     if (item.quantity > 1) {
-        emit('update-quantity', item.id, item.quantity - 1)
+        shop.updateCartItemQuantity(item.id, item.quantity - 1)
+    } else {
+        removeItem(item)
     }
 }
 
 const removeItem = (item: any) => {
-    emit('remove-item', item.id)
+    shop.removeFromCart(item.id)
 }
 
-const goToCheckout = () => emit('checkout')
+const goToCheckout = () => {
+    // redirect to checkout page
+    window.location.href = '/checkout'
+}
 
-/*  CLICK OUTSIDE  */
+/*  CLICK OUTSIDE */
 const handleClickOutside = (event: MouseEvent) => {
     const target = event.target as Node
-
     if (
-        props.showCart &&
+        showCart.value &&
         cartPopup.value &&
         !cartPopup.value.contains(target) &&
         cartButton.value &&
         !cartButton.value.contains(target)
     ) {
-        emit('toggle-cart', false)
+        showCart.value = false
     }
 }
 
