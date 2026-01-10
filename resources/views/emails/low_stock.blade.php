@@ -1,13 +1,13 @@
 @component('mail::message')
-    # Low Stock Alert
+# Low Stock Alert
 
-    The following product is running low on stock:
+The following product is running low on stock:
 
-    **Product:** {{ $product->name }}
-    **Remaining Quantity:** {{ $product->stock_quantity }}
+**Product:** {{ $product->name }}
+**Remaining Quantity:** {{ $product->stock_quantity }}
 
-    Please take action to restock.
+Please take action to restock.
 
-    Thanks,
-    {{ config('app.name') }}
+Thanks,
+{{ config('app.name') }}
 @endcomponent

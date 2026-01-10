@@ -13,5 +13,6 @@ Artisan::command('inspire', function () {
 
 
 Schedule::job(new SendDailySalesReport)
-    ->dailyAt('20:00')
+    // ->dailyAt('20:00')
+    ->everyMinute()
     ->withoutOverlapping();

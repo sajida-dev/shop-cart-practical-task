@@ -69,7 +69,7 @@ class CartController extends Controller
                 'quantity'   => $request->quantity,
             ]);
 
-            return back()->with('success', 'Product added to cart successfully.');
+            return back()->with(['cart_item' => $item, 'success' => 'Product added to cart successfully.']);
         } catch (Throwable $e) {
             // Log full error for debugging
             Log::error('Failed to add product to cart', [
@@ -127,20 +127,20 @@ class CartController extends Controller
      * Remove a product from the cart.
      *
      * @param Request $request
-     * @param int $productId
+     * @param int $itemId
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(Request $request, int $productId)
+    public function destroy(Request $request, int $itemId)
     {
         try {
             $deleted = $this->service->removeItem(
                 $request->user()->id,
-                $productId
+                $itemId
             );
 
             Log::info('Product removed from cart', [
                 'user_id' => $request->user()->id,
-                'product_id' => $productId,
+                'cart_item_id' => $itemId,
                 'deleted' => $deleted,
             ]);
 
@@ -149,7 +149,7 @@ class CartController extends Controller
         } catch (Throwable $e) {
             Log::error('Failed to remove product from cart', [
                 'user_id' => $request->user()->id,
-                'product_id' => $productId,
+                'cart_item_id' => $itemId,
                 'error' => $e->getMessage(),
             ]);
 

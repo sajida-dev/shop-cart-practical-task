@@ -63,6 +63,8 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ShoppingCartIcon, TrashIcon } from 'lucide-vue-next'
 import { useShopStore } from '@/stores/useShopStore'
+import { router } from '@inertiajs/vue3'
+import { toast } from 'vue3-toastify'
 
 /*  STORE  */
 const shop = useShopStore()
@@ -98,9 +100,18 @@ const removeItem = (item: any) => {
     shop.removeFromCart(item.id)
 }
 
-const goToCheckout = () => {
-    // redirect to checkout page
-    window.location.href = '/checkout'
+const goToCheckout = async () => {
+    await router.post(route('checkout'), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            shop.cart = []
+            showCart.value = false
+            toast.success('Order placed successfully')
+        },
+        onError: () => {
+            toast.error('Order could not be placed')
+        },
+    })
 }
 
 /*  CLICK OUTSIDE */

@@ -91,20 +91,34 @@ class CartService
             Log::info("Cart retrieved/created", ['cart_id' => $cart->id]);
 
             // Add or update CartItem, restoring soft-deleted items
-            $item = CartItem::withTrashed()->updateOrCreate(
-                ['cart_id' => $cart->id, 'product_id' => $productId],
-                ['quantity' => $quantity, 'deleted_at' => null]
-            );
+            $cartItem = CartItem::withTrashed()
+                ->where('cart_id', $cart->id)
+                ->where('product_id', $productId)
+                ->first();
+
+            if ($cartItem) {
+                if ($cartItem->trashed()) {
+                    $cartItem->restore();
+                }
+                $cartItem->quantity = $quantity;
+                $cartItem->save();
+            } else {
+                $cartItem = CartItem::create([
+                    'cart_id' => $cart->id,
+                    'product_id' => $productId,
+                    'quantity' => $quantity
+                ]);
+            }
 
             Log::info("CartItem added or updated", [
-                'cart_item_id' => $item->id,
+                'cart_item_id' => $cartItem->id,
                 'cart_id'      => $cart->id,
                 'product_id'   => $productId,
                 'quantity'     => $quantity,
-                'was_trashed'  => $item->trashed(),
+                'was_trashed'  => $cartItem->trashed(),
             ]);
 
-            return $item;
+            return $cartItem;
         });
     }
 
@@ -162,25 +176,26 @@ class CartService
      * Remove a product from the user's cart.
      *
      * @param int $userId
-     * @param int $productId
+     * @param int $itemId
      * @return bool
      */
-    public function removeItem(int $userId, int $productId): bool
+    public function removeItem(int $userId, int $itemId): bool
     {
-        $cart = Cart::where('user_id', $userId)->firstOrFail();
+        $item = CartItem::whereHas('cart', fn($q) => $q->where('user_id', $userId))
+            ->find($itemId);
 
-        $deleted = $cart->items()->where('product_id', $productId)->delete() > 0;
+        if (!$item) return false;
+
+        $deleted = $item->delete();
 
         Log::info("Removed product from cart", [
             'user_id'    => $userId,
-            'cart_id'    => $cart->id,
-            'product_id' => $productId,
+            'cart_item_id' => $itemId,
             'deleted'    => $deleted,
         ]);
 
         return $deleted;
     }
-
     /**
      * Clear all items from the user's cart.
      *

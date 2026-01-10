@@ -2,9 +2,11 @@
 
 namespace App\Mail;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -55,6 +57,16 @@ class DailySalesReport extends Mailable implements ShouldQueue
      */
     public function attachments(): array
     {
-        return [];
+        $pdf = Pdf::loadView('pdf.daily-sales-report', [
+            'date' => $this->date,
+            'soldProducts' => $this->soldProducts,
+        ]);
+
+        return [
+            Attachment::fromData(
+                fn() => $pdf->output(),
+                "daily-sales-report-{$this->date}.pdf"
+            )->withMime('application/pdf'),
+        ];
     }
 }

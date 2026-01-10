@@ -2,22 +2,20 @@
 
 namespace App\Services;
 
-use App\Events\ProductStockUpdated;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
-use Throwable;
 
 class OrderService
 {
     /**
      * Checkout cart into an order (atomic & safe)
      */
-    public function checkout(int $userId, array $addresses): Order
+    public function checkout(int $userId): Order
     {
-        return DB::transaction(function () use ($userId, $addresses) {
+        return DB::transaction(function () use ($userId) {
 
             $cart = Cart::with('items.product')
                 ->where('user_id', $userId)
@@ -34,13 +32,13 @@ class OrderService
             foreach ($cart->items as $item) {
                 $product = Product::lockForUpdate()->findOrFail($item->product_id);
 
-                if ($product->stock < $item->quantity) {
+                if ($product->stock_quantity < $item->quantity) {
                     throw new RuntimeException(
                         "Insufficient stock for {$product->name}"
                     );
                 }
 
-                $price = $product->finalPrice();
+                $price = $product->price;
                 $lineTotal = $price * $item->quantity;
 
                 $subtotal += $product->price * $item->quantity;
@@ -49,14 +47,7 @@ class OrderService
 
             $order = Order::create([
                 'user_id'          => $userId,
-                'order_number'     => Order::generateNumber(),
-                'subtotal'         => $subtotal,
-                'discount'         => $subtotal - $total,
-                'tax'              => 0,
                 'total'            => $total,
-                'status'           => 'pending',
-                'shipping_address' => $addresses['shipping'],
-                'billing_address'  => $addresses['billing'],
             ]);
 
             foreach ($cart->items as $item) {
@@ -65,12 +56,11 @@ class OrderService
                 $order->items()->create([
                     'product_id' => $product->id,
                     'quantity'   => $item->quantity,
-                    'price'      => $product->finalPrice(),
+                    'price'      => $product->price,
                 ]);
 
-                $product->decrement('stock', $item->quantity);
-                $product->refresh();
-                ProductStockUpdated::dispatch($product);
+                $product->stock_quantity -= $item->quantity;
+                $product->save();
             }
 
             $cart->items()->delete();

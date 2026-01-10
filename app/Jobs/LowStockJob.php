@@ -9,6 +9,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class LowStockJob implements ShouldQueue
@@ -27,7 +28,13 @@ class LowStockJob implements ShouldQueue
      */
     public function handle(): void
     {
+        Log::info('Low stock job triggered for product_id {product_id}', [
+            'product_id' => $this->product->id,
+        ]);
         Mail::to('sajidajavaid640@gmail.com')
             ->queue(new LowStockMail($this->product));
+        Log::info('Low stock mail sent for product_id {product_id}', [
+            'product_id' => $this->product->id,
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Services\OrderService;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Throwable;
 
@@ -21,14 +22,13 @@ class OrderController extends Controller
             $user = $request->user();
             $order = $this->service->checkout(
                 $user->id,
-                [
-                    'shipping' => $request->shipping_address,
-                    'billing'  => $request->billing_address,
-                ]
             );
-
+            Log::info('Order placed successfully', [
+                'user_id' => $user->id,
+                'order_id' => $order->id,
+            ]);
             return redirect()
-                ->route('orders.show', $order->id)
+                ->back()
                 ->with('success', 'Order placed successfully');
         } catch (Throwable $e) {
             report($e);

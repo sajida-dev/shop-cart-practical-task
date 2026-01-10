@@ -48,7 +48,6 @@ const props = defineProps<{
 const name = computed(() => props.product.name)
 const price = computed(() => props.product.price)
 const inStock = computed(() => props.product.inStock)
-
 /* 
    Cart
  */

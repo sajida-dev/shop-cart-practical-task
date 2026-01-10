@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { router } from '@inertiajs/vue3'
 import { CartItem, Product } from '@/product'
+import { toast } from 'vue3-toastify'
 
 
 export interface ShopState {
@@ -25,18 +26,19 @@ export const useShopStore = defineStore('shop', {
            ADD TO CART
          */
         async addToCart(product: Product) {
-            const existing = this.cart.find(i => i.id === product.id)
+            let existing = this.cart.find(i => i.productId === product.id)
 
             if (existing) {
                 existing.quantity++
             } else {
-                this.cart.push({
+                existing = {
                     id: Date.now() * -1,
                     productId: product.id,
                     name: product.name,
                     price: product.price,
                     quantity: 1,
-                })
+                }
+                this.cart.push(existing)
             }
 
             try {
@@ -49,18 +51,34 @@ export const useShopStore = defineStore('shop', {
                     {
                         preserveState: true,
                         preserveScroll: true,
+                        onSuccess: (page) => {
+                            const shopCart = (page.props as any).shop.cart as any[]
+                            const backendItem = shopCart.find(i => i.productId === product.id)
+                            if (backendItem?.id) {
+                                existing.id = backendItem.id
+                                existing.quantity = backendItem.quantity
+                            }
+                            // toast.success('Product added to cart')
+                        },
                         onError: () => {
                             // Rollback
-                            if (existing) {
+                            if (existing.quantity > 1) {
                                 existing.quantity--
                             } else {
-                                this.cart = this.cart.filter(i => i.id !== product.id)
+                                this.cart = this.cart.filter(i => i.id !== existing.id)
                             }
+                            toast.error('Product could not be added to cart')
                         },
                     }
                 )
             } catch (error) {
                 console.error('Add to cart failed', error)
+                if (existing.quantity > 1) {
+                    existing.quantity--
+                } else {
+                    this.cart = this.cart.filter(i => i.id !== existing.id)
+                }
+                toast.error('Product could not be added to cart')
             }
         },
 
@@ -68,6 +86,7 @@ export const useShopStore = defineStore('shop', {
            REMOVE FROM CART
          */
         async removeFromCart(productId: number) {
+            console.log('removeFromCart', productId)
             const backup = [...this.cart]
 
             this.cart = this.cart.filter(i => i.id !== productId)
@@ -76,13 +95,18 @@ export const useShopStore = defineStore('shop', {
                 await router.delete(route('cart.destroy', productId), {
                     preserveState: true,
                     preserveScroll: true,
+                    onSuccess: () => {
+                        toast.success('Product removed from cart')
+                    },
                     onError: () => {
                         this.cart = backup
+                        toast.error('Product could not be removed from cart')
                     },
                 })
             } catch (error) {
                 console.error('Remove from cart failed', error)
                 this.cart = backup
+                toast.error('Product could not be removed from cart')
             }
         },
 
@@ -109,14 +133,19 @@ export const useShopStore = defineStore('shop', {
                     {
                         preserveState: true,
                         preserveScroll: true,
+                        onSuccess: () => {
+                            toast.success('Update quantity successful')
+                        },
                         onError: () => {
                             item.quantity = oldQuantity
+                            toast.error('Update quantity failed')
                         },
                     }
                 )
             } catch (error) {
                 console.error('Update quantity failed', error)
                 item.quantity = oldQuantity
+                toast.error('Update quantity failed')
             }
         },
 

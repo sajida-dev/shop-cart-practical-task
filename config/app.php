@@ -10,7 +10,7 @@ return [
     | This value is the name of your application, which will be used when the
     | framework needs to place the application's name in a notification or
     | other UI elements where an application name needs to be displayed.
-    |
+    | in config there is app.php,auth.php,cache.php,database.php,session.php,filesystem.php,fortify.php,inertia.php,logging.php,mail.php,queue.php,services.php,
     */
 
     'name' => env('APP_NAME', 'Laravel'),

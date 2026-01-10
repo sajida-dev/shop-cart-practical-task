@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,6 +22,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
     Route::delete('/cart/{productId}', [CartController::class, 'destroy'])->name('cart.destroy');
     Route::put('/cart/update/{itemId}', [CartController::class, 'updateQty'])->name('cart.updateQty');
+
+    Route::post('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 });
 
 

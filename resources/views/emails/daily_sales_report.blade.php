@@ -1,22 +1,25 @@
-@component('mail::message')
-    <img src="{{ asset('img/e-com-logo.png') }}" alt="Logo" style="width:120px; margin-bottom:20px;">
+<x-mail::message>
+# Daily Sales Report
 
-    # Daily Sales Report
+**Date:** {{ $date }}
 
-    Date: {{ $date }}
+<x-mail::panel>
+**Total Products Sold:** {{ $soldProducts->sum('quantity') }}  
+**Total Revenue:** ${{ number_format($soldProducts->sum('total'), 2) }}
+</x-mail::panel>
 
-    @component('mail::table')
-        | Product | Quantity Sold | Total Revenue |
-        |---------|---------------|---------------|
-        @foreach ($soldProducts as $product)
-            | {{ $product['name'] }} | {{ $product['quantity'] }} | ${{ number_format($product['total'], 2) }} |
-        @endforeach
-    @endcomponent
+<x-mail::table>
+| Product | Price | Quantity | Revenue |
+|:--------|-----:|--------:|-------:|
+@foreach ($soldProducts as $product)
+| {{ $product['name'] }} | ${{ number_format($product['price'] ?? ($product['total'] / max($product['quantity'],1)), 2) }} | {{ $product['quantity'] }} | ${{ number_format($product['total'], 2) }} |
+@endforeach
+</x-mail::table>
 
-    @component('mail::button', ['url' => url('/admin/orders')])
-        View All Orders
-    @endcomponent
+<x-mail::button :url="url('/admin/orders')" color="primary">
+View Orders
+</x-mail::button>
 
-    Thanks,<br>
-    **Your Store Team**
-@endcomponent
+Thanks,<br>
+{{ config('app.name') }}
+</x-mail::message>

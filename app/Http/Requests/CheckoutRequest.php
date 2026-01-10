@@ -14,16 +14,16 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'shipping_address' => ['required', 'string', 'max:1000'],
-            'billing_address'  => ['required', 'string', 'max:1000'],
+            // 'shipping_address' => ['required', 'string', 'max:1000'],
+            // 'billing_address'  => ['required', 'string', 'max:1000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'shipping_address.required' => 'Shipping address is required.',
-            'billing_address.required'  => 'Billing address is required.',
+            // 'shipping_address.required' => 'Shipping address is required.',
+            // 'billing_address.required'  => 'Billing address is required.',
         ];
     }
 }

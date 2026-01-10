@@ -19,7 +19,7 @@ class ProductController extends Controller
                 'name' => $product->name ?? '',
                 'price' => $product->price ?? 0,
                 'stock_quantity' => $product->stock_quantity ?? 0,
-                'inStock' => $product->stock_quantity > 5 ? true : false,
+                'inStock' => $product->stock_quantity > 0 ? true : false,
             ];
         });
         return Inertia::render('Products/Index', [
